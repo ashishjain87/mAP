@@ -21,6 +21,7 @@ parser.add_argument('-i', '--ignore', nargs='+', type=str, help="ignore a list o
 parser.add_argument('--set-class-iou', nargs='+', type=str, help="set IoU for a specific class.")
 parser.add_argument('--path-ground-truth-labels', type=str, help="path to ground truth labels", required=True)
 parser.add_argument('--path-prediction-labels', type=str, help="path to prediction labels", required=True)
+parser.add_argument('--output-directory', type=str, help="path to output directory", required=True)
 
 args = parser.parse_args()
 
@@ -50,6 +51,10 @@ if not os.path.exists(args.path_prediction_labels):
 
 GT_PATH = args.path_ground_truth_labels
 DR_PATH = args.path_prediction_labels
+
+if not os.path.exists(args.output_directory):
+    os.makedirs(args.output_directory, exist_ok=True)
+    print("Output directory created %s" % args.output_directory)
 
 specific_iou_flagged = False
 if args.set_class_iou is not None:
@@ -339,10 +344,16 @@ def draw_plot_func(dictionary, n_classes, window_title, plot_title, x_label, out
 """
  Create a ".temp_files/" and "output/" directory
 """
+# Create a temporary directory
 TEMP_FILES_PATH = ".temp_files"
-if not os.path.exists(TEMP_FILES_PATH): # if it doesn't exist already
-    os.makedirs(TEMP_FILES_PATH)
-output_files_path = "output"
+if os.path.exists(TEMP_FILES_PATH): # if it exist already
+    # reset the output directory
+    shutil.rmtree(TEMP_FILES_PATH)
+
+os.makedirs(TEMP_FILES_PATH)
+
+# Create output directory
+output_files_path = args.output_directory 
 if os.path.exists(output_files_path): # if it exist already
     # reset the output directory
     shutil.rmtree(output_files_path)
