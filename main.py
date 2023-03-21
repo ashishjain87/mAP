@@ -19,6 +19,9 @@ parser.add_argument('-q', '--quiet', help="minimalistic console output.", action
 parser.add_argument('-i', '--ignore', nargs='+', type=str, help="ignore a list of classes.")
 # argparse receiving list of classes with specific IoU (e.g., python main.py --set-class-iou person 0.7)
 parser.add_argument('--set-class-iou', nargs='+', type=str, help="set IoU for a specific class.")
+parser.add_argument('--path-ground-truth-labels', type=str, help="path to ground truth labels", required=True)
+parser.add_argument('--path-prediction-labels', type=str, help="path to prediction labels", required=True)
+
 args = parser.parse_args()
 
 '''
@@ -37,6 +40,17 @@ args = parser.parse_args()
 if args.ignore is None:
     args.ignore = []
 
+if not os.path.exists(args.path_ground_truth_labels):
+    print("Path to ground truth labels does not exist")
+    raise RuntimeError("Path to ground truth labels does not exist")
+
+if not os.path.exists(args.path_prediction_labels):
+    print("Path to prediction labels does not exist")
+    raise RuntimeError("Path to prediction labels does not exist")
+
+GT_PATH = args.path_ground_truth_labels
+DR_PATH = args.path_prediction_labels
+
 specific_iou_flagged = False
 if args.set_class_iou is not None:
     specific_iou_flagged = True
@@ -44,17 +58,9 @@ if args.set_class_iou is not None:
 # make sure that the cwd() is the location of the python script (so that every path makes sense)
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-GT_PATH = os.path.join(os.getcwd(), 'input', 'ground-truth')
-DR_PATH = os.path.join(os.getcwd(), 'input', 'detection-results')
 # if there are no images then no animation can be shown
-IMG_PATH = os.path.join(os.getcwd(), 'input', 'images-optional')
-if os.path.exists(IMG_PATH): 
-    for dirpath, dirnames, files in os.walk(IMG_PATH):
-        if not files:
-            # no image files found
-            args.no_animation = True
-else:
-    args.no_animation = True
+# NOTE: We have deliberately turned off animation completely.
+args.no_animation = True
 
 # try to import OpenCV if the user didn't choose the option --no-animation
 show_animation = False
