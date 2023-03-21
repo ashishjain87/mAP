@@ -52,10 +52,6 @@ if not os.path.exists(args.path_prediction_labels):
 GT_PATH = args.path_ground_truth_labels
 DR_PATH = args.path_prediction_labels
 
-if not os.path.exists(args.output_directory):
-    os.makedirs(args.output_directory, exist_ok=True)
-    print("Output directory created %s" % args.output_directory)
-
 specific_iou_flagged = False
 if args.set_class_iou is not None:
     specific_iou_flagged = True
