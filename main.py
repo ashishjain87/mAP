@@ -19,6 +19,10 @@ parser.add_argument('-q', '--quiet', help="minimalistic console output.", action
 parser.add_argument('-i', '--ignore', nargs='+', type=str, help="ignore a list of classes.")
 # argparse receiving list of classes with specific IoU (e.g., python main.py --set-class-iou person 0.7)
 parser.add_argument('--set-class-iou', nargs='+', type=str, help="set IoU for a specific class.")
+parser.add_argument('--path-ground-truth-labels', type=str, help="path to ground truth labels", required=True)
+parser.add_argument('--path-prediction-labels', type=str, help="path to prediction labels", required=True)
+parser.add_argument('--output-directory', type=str, help="path to output directory", required=True)
+
 args = parser.parse_args()
 
 '''
@@ -37,6 +41,17 @@ args = parser.parse_args()
 if args.ignore is None:
     args.ignore = []
 
+if not os.path.exists(args.path_ground_truth_labels):
+    print("Path to ground truth labels does not exist")
+    raise RuntimeError("Path to ground truth labels does not exist")
+
+if not os.path.exists(args.path_prediction_labels):
+    print("Path to prediction labels does not exist")
+    raise RuntimeError("Path to prediction labels does not exist")
+
+GT_PATH = args.path_ground_truth_labels
+DR_PATH = args.path_prediction_labels
+
 specific_iou_flagged = False
 if args.set_class_iou is not None:
     specific_iou_flagged = True
@@ -44,17 +59,9 @@ if args.set_class_iou is not None:
 # make sure that the cwd() is the location of the python script (so that every path makes sense)
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-GT_PATH = os.path.join(os.getcwd(), 'input', 'ground-truth')
-DR_PATH = os.path.join(os.getcwd(), 'input', 'detection-results')
 # if there are no images then no animation can be shown
-IMG_PATH = os.path.join(os.getcwd(), 'input', 'images-optional')
-if os.path.exists(IMG_PATH): 
-    for dirpath, dirnames, files in os.walk(IMG_PATH):
-        if not files:
-            # no image files found
-            args.no_animation = True
-else:
-    args.no_animation = True
+# NOTE: We have deliberately turned off animation completely.
+args.no_animation = True
 
 # try to import OpenCV if the user didn't choose the option --no-animation
 show_animation = False
@@ -333,10 +340,16 @@ def draw_plot_func(dictionary, n_classes, window_title, plot_title, x_label, out
 """
  Create a ".temp_files/" and "output/" directory
 """
+# Create a temporary directory
 TEMP_FILES_PATH = ".temp_files"
-if not os.path.exists(TEMP_FILES_PATH): # if it doesn't exist already
-    os.makedirs(TEMP_FILES_PATH)
-output_files_path = "output"
+if os.path.exists(TEMP_FILES_PATH): # if it exist already
+    # reset the output directory
+    shutil.rmtree(TEMP_FILES_PATH)
+
+os.makedirs(TEMP_FILES_PATH)
+
+# Create output directory
+output_files_path = args.output_directory 
 if os.path.exists(output_files_path): # if it exist already
     # reset the output directory
     shutil.rmtree(output_files_path)
